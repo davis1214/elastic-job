@@ -59,6 +59,19 @@ Elastic-Job-Lite and Elastic-Job-Cloud provide unified API. Developers only need
 
 ## Elastic-Job-Lite
 
+### 二次开发 (in ami)
+1. 增加新的trigger类型（simpleTrigger，以实现fixRate调度功能）
+2. 增加注解 Scheduler(crontab)，简化开发难度
+3. 增加分片策略配置入口
+4. 增加spring bean初始化后的自动扫描（ScheduledAnnotationProcessor）
+5. console平台，增加任务运行时所在的服务器和进程ID
+6. console平台，作业历史列表根据时间倒叙
+7. console服务作业操作页面，增加fixRate的展示
+8. console去掉关于当当相关的配置
+9. console，任务修改页面增加“fixedRate”属性
+10.增加zk是否重新加载的属性配置
+
+
 ### Add maven dependency
 
 ```xml
@@ -79,25 +92,41 @@ Elastic-Job-Lite and Elastic-Job-Cloud provide unified API. Developers only need
 ### Job config
 
 ```java
+@Slf4j
+@Component
+@ConditionalOnExpression("${scheduler.enable:false}")
+public class SchedulerConfig {
 
-    @Resource
-    private DataSource dataSource;
+    @Value("${scheduler.dbstorage.enable:false}")
+    private boolean enableDbStorage;
 
-    @Bean
-    public JobEventConfiguration jobEventConfiguration() {
-        return new JobEventRdbConfiguration(dataSource);
-    }
+    @Value("${scheduler.regCenter.overwrite:true}")
+    private boolean shouldOverwriteliteJobConfig;
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
 
     @Bean(initMethod = "init")
-    public ZookeeperRegistryCenter regCenter(@Value("${regCenter.serverList}") final String serverList,
-                                             @Value("${regCenter.namespace}") final String namespace) {
+    public ZookeeperRegistryCenter regCenter(@Value("${scheduler.regCenter.serverList}") final String serverList,
+                                             @Value("${scheduler.regCenter.namespace}") final String namespace) {
         return new ZookeeperRegistryCenter(new ZookeeperConfiguration(serverList, namespace));
     }
 
     @Bean
-    public ScheduledAnnotationProcessor scheduledAnnotationProcessor(ZookeeperRegistryCenter zookeeperRegistryCenter,JobEventConfiguration jobEventConfiguration){
-        return  new ScheduledAnnotationProcessor(zookeeperRegistryCenter, jobEventConfiguration);
+    public ScheduledAnnotationProcessor scheduledAnnotationProcessor(ZookeeperRegistryCenter zookeeperRegistryCenter) {
+        String shardingStrategyClass = "com.select.ex.ddframe.job.lite.api.strategy.impl.RotateServerByNameJobShardingStrategy";
+
+        if (enableDbStorage) {
+            DataSource dataSource = (DataSource) applicationContext.getBean("getOrzDataSources");
+            log.info("init elastic job with db storage");
+            return new ScheduledAnnotationProcessor(zookeeperRegistryCenter, new JobEventRdbConfiguration(dataSource), shardingStrategyClass, shouldOverwriteliteJobConfig);
+        }
+        return new ScheduledAnnotationProcessor(zookeeperRegistryCenter, shardingStrategyClass, shouldOverwriteliteJobConfig);
     }
+}
+
+
     
 ```
 

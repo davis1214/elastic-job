@@ -10,6 +10,7 @@
 7. console服务作业操作页面，增加fixRate的展示
 8. console去掉关于当当相关的配置
 9. console，任务修改页面增加“fixedRate”属性
+10.增加zk是否重新加载的属性配置
 
 ## 3.0.0.M1
 
