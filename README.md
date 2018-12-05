@@ -59,7 +59,7 @@ Elastic-Job-Lite and Elastic-Job-Cloud provide unified API. Developers only need
 
 ## Elastic-Job-Lite
 
-### 二次开发 (in ami)
+### re dev (in ami)
 1. 增加新的trigger类型（simpleTrigger，以实现fixRate调度功能）
 2. 增加注解 Scheduler(crontab)，简化开发难度
 3. 增加分片策略配置入口
@@ -70,6 +70,7 @@ Elastic-Job-Lite and Elastic-Job-Cloud provide unified API. Developers only need
 8. console去掉关于当当相关的配置
 9. console，任务修改页面增加“fixedRate”属性
 10.增加zk是否重新加载的属性配置
+11.增加作业调度使用类型（fixed / delay …… ）
 
 
 ### Add maven dependency
